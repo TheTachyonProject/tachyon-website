@@ -8,15 +8,27 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check live Tachyon site
+      - name: Diagnose live Tachyon hosting
         shell: bash
         run: |
-          set -euo pipefail
-          curl -L --fail --retry 2 -sS https://tachyonaio.com/ -o /tmp/index.html
-          curl -L --fail --retry 2 -sS https://tachyonaio.com/styles.css -o /tmp/styles.css
-          echo "HOME_BYTES=$(wc -c < /tmp/index.html)"
-          echo "CSS_BYTES=$(wc -c < /tmp/styles.css)"
-          echo "CSS_GIT_BLOB=$(printf 'blob %s\0' "$(wc -c < /tmp/styles.css)" | cat - /tmp/styles.css | sha1sum | awk '{print $1}')"
-          grep -F '.product-panel-split{grid-template-columns:.38fr .62fr}' /tmp/styles.css
-          grep -F '.product-image-wrap:before{content:"";position:absolute;inset:14% 8% 10% 10%' /tmp/styles.css
-          grep -F '<title>Tachyon AIO — Built for the Drop</title>' /tmp/index.html
+          set +e
+          echo '=== DNS apex ==='
+          dig +short tachyonaio.com A
+          dig +short tachyonaio.com AAAA
+          dig +short tachyonaio.com CNAME
+          echo '=== DNS www ==='
+          dig +short www.tachyonaio.com A
+          dig +short www.tachyonaio.com AAAA
+          dig +short www.tachyonaio.com CNAME
+          echo '=== HTTPS apex ==='
+          curl -sS -L -o /tmp/apex.html -D /tmp/apex.headers -w 'FINAL_URL=%{url_effective}\nHTTP=%{http_code}\n' https://tachyonaio.com/
+          cat /tmp/apex.headers
+          head -c 500 /tmp/apex.html; echo
+          echo '=== HTTPS www ==='
+          curl -sS -L -o /tmp/www.html -D /tmp/www.headers -w 'FINAL_URL=%{url_effective}\nHTTP=%{http_code}\n' https://www.tachyonaio.com/
+          cat /tmp/www.headers
+          head -c 500 /tmp/www.html; echo
+          echo '=== Known GitHub raw main ==='
+          curl -sS -L -o /tmp/raw.css -w 'RAW_HTTP=%{http_code}\n' https://raw.githubusercontent.com/TheTachyonProject/tachyon-website/main/styles.css
+          printf 'RAW_CSS_GIT_BLOB='
+          printf 'blob %s\0' "$(wc -c < /tmp/raw.css)" | cat - /tmp/raw.css | sha1sum | awk '{print $1}'
