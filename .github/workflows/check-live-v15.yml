@@ -1,0 +1,22 @@
+name: Check Live V15
+on:
+  push:
+    branches: [preview-exact-v15-fix]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check live Tachyon site
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 2 -sS https://tachyonaio.com/ -o /tmp/index.html
+          curl -L --fail --retry 2 -sS https://tachyonaio.com/styles.css -o /tmp/styles.css
+          echo "HOME_BYTES=$(wc -c < /tmp/index.html)"
+          echo "CSS_BYTES=$(wc -c < /tmp/styles.css)"
+          echo "CSS_GIT_BLOB=$(printf 'blob %s\0' "$(wc -c < /tmp/styles.css)" | cat - /tmp/styles.css | sha1sum | awk '{print $1}')"
+          grep -F '.product-panel-split{grid-template-columns:.38fr .62fr}' /tmp/styles.css
+          grep -F '.product-image-wrap:before{content:"";position:absolute;inset:14% 8% 10% 10%' /tmp/styles.css
+          grep -F '<title>Tachyon AIO — Built for the Drop</title>' /tmp/index.html
