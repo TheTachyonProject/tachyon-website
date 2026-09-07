@@ -1,0 +1,50 @@
+name: Validate V15 Preview
+
+on:
+  push:
+    branches:
+      - preview-exact-v15-fix
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+
+      - name: Validate exact V15 payload
+        shell: python
+        run: |
+          import base64
+          import gzip
+          from pathlib import Path
+
+          parts = [
+              "preview_parts/p00.txt",
+              "preview_parts/p01.txt",
+              "preview_parts/p02_03.txt",
+              "preview_parts/p04_05.txt",
+              "preview_parts/p06_07.txt",
+              "preview_parts/p08_09.txt",
+          ]
+
+          encoded = "".join(Path(p).read_text(encoding="utf-8") for p in parts)
+          encoded = "".join(encoded.split())
+          assert encoded.startswith("H4sI"), "gzip/base64 header missing"
+
+          compressed = base64.b64decode(encoded, validate=True)
+          html_bytes = gzip.decompress(compressed)
+          html = html_bytes.decode("utf-8")
+
+          lowered = html.lower()
+          assert "<html" in lowered, "decoded payload is not HTML"
+          assert "tachyon" in lowered, "decoded payload does not appear to be Tachyon"
+          assert len(html_bytes) > 10000, "decoded payload is unexpectedly small"
+
+          print(f"Validated {len(parts)} payload files")
+          print(f"Compressed bytes: {len(compressed)}")
+          print(f"Decoded HTML bytes: {len(html_bytes)}")
