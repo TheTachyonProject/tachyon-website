@@ -1,0 +1,59 @@
+name: Publish verified V15 homepage
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-verified-v15.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch verified payload branch
+        run: git fetch origin preview-exact-v15-fix:refs/remotes/origin/preview-exact-v15-fix
+
+      - name: Rebuild exact verified homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > /tmp/tachyon-v15.b64
+          for f in p00.txt p01.txt p02_03.txt p04_05.txt p06_07.txt p08_09.txt; do
+            git show "origin/preview-exact-v15-fix:preview_parts/$f" >> /tmp/tachyon-v15.b64
+          done
+          tr -d '\r\n' < /tmp/tachyon-v15.b64 | base64 -d | gzip -d > /tmp/index.html
+          grep -q 'Tachyon AIO' /tmp/index.html
+          grep -q 'data:image/' /tmp/index.html
+          grep -q 'plan_DulX0ELfxzSyT' /tmp/index.html
+          grep -q 'plan_73Ny0h9vbhLlp' /tmp/index.html
+          grep -q 'plan_7NQhyigSMh7iu' /tmp/index.html
+          grep -q 'plan_3AurEJr6b252f' /tmp/index.html
+          if grep -q 'assets/hero.webp' /tmp/index.html; then
+            echo 'Refusing publish: hero still depends on external asset path' >&2
+            exit 1
+          fi
+          cp /tmp/index.html index.html
+          echo "Verified rebuilt homepage size: $(wc -c < index.html) bytes"
+
+      - name: Commit verified homepage to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- index.html; then
+            echo 'Homepage already matches verified V15 payload.'
+            exit 0
+          fi
+          git config user.name 'Tachyon Publish Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Publish verified self-contained V15 homepage'
+          git push origin HEAD:main
