@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Patch homepage demo CTA and mobile nav sizing
+      - name: Patch homepage layout
         shell: bash
         run: |
           set -euo pipefail
@@ -27,16 +27,17 @@ jobs:
           path = Path('index.html')
           html = path.read_text()
 
+          # Preserve the interactive demo CTA.
           marker = 'tachyon-demo-cta'
           target = '<a class="btn primary" href="#pricing">Get access</a>'
           demo = '<a class="btn tachyon-demo-cta" href="/demo/" style="background:#101010!important;color:#fff!important;border-color:#3a3a3a!important">Try Tachyon</a>'
-
           if marker not in html:
               count = html.count(target)
               if count < 1:
                   raise SystemExit('Could not find production Get access CTA anchor')
               html = html.replace(target, demo + target)
 
+          # Preserve compact mobile nav sizing.
           fix_id = 'tachyon-mobile-nav-fix'
           mobile_fix = '''<style id="tachyon-mobile-nav-fix">
           @media(max-width:580px){
@@ -60,7 +61,6 @@ jobs:
             }
           }
           </style>'''
-
           if fix_id in html:
               start = html.index('<style id="tachyon-mobile-nav-fix">')
               end = html.index('</style>', start) + len('</style>')
@@ -68,9 +68,43 @@ jobs:
           else:
               html = html.replace('</head>', mobile_fix + '</head>', 1)
 
+          # Move the hero image above the large View pricing / Explore workspace buttons.
+          section_start = html.index('<section class="hero">')
+          section_end = html.index('</section>', section_start)
+          hero = html[section_start:section_end]
+          actions_start = hero.index('<div class="hero-actions">')
+          actions_end = hero.index('</div>', actions_start) + len('</div>')
+          visual_start = hero.index('<div class="hero-visual">')
+          visual_end = hero.index('</div>', visual_start) + len('</div>')
+
+          if actions_start < visual_start:
+              actions = hero[actions_start:actions_end]
+              hero = hero[:actions_start] + hero[actions_end:]
+              visual_start = hero.index('<div class="hero-visual">')
+              visual_end = hero.index('</div>', visual_start) + len('</div>')
+              hero = hero[:visual_end] + '\n' + actions + hero[visual_end:]
+              html = html[:section_start] + hero + html[section_end:]
+
+          # Tighten spacing for the new hierarchy on desktop and mobile.
+          order_id = 'tachyon-hero-order-fix'
+          order_fix = '''<style id="tachyon-hero-order-fix">
+          .hero .hero-visual{margin-top:32px!important}
+          .hero .hero-actions{margin:24px 0 8px!important}
+          @media(max-width:580px){
+            .hero .hero-visual{margin-top:28px!important}
+            .hero .hero-actions{margin:20px 0 6px!important}
+          }
+          </style>'''
+          if order_id in html:
+              start = html.index('<style id="tachyon-hero-order-fix">')
+              end = html.index('</style>', start) + len('</style>')
+              html = html[:start] + order_fix + html[end:]
+          else:
+              html = html.replace('</head>', order_fix + '</head>', 1)
+
           path.write_text(html)
-          assert 'href="/demo/"' in html
-          assert marker in html
+          assert html.index('<div class="hero-visual">', section_start) < html.index('<div class="hero-actions">', section_start)
+          assert order_id in html
           assert fix_id in html
           PY
       - name: Commit homepage patch
@@ -81,5 +115,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Fix mobile nav button sizing in production homepage'
+          git commit -m 'Move hero image above primary CTAs'
           git push origin HEAD:main
