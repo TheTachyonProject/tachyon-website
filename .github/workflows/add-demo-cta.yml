@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Add Try Tachyon links without rebuilding embedded assets
+      - name: Patch homepage demo CTA and mobile nav sizing
         shell: bash
         run: |
           set -euo pipefail
@@ -26,6 +26,7 @@ jobs:
 
           path = Path('index.html')
           html = path.read_text()
+
           marker = 'tachyon-demo-cta'
           target = '<a class="btn primary" href="#pricing">Get access</a>'
           demo = '<a class="btn tachyon-demo-cta" href="/demo/" style="background:#101010!important;color:#fff!important;border-color:#3a3a3a!important">Try Tachyon</a>'
@@ -35,15 +36,44 @@ jobs:
               if count < 1:
                   raise SystemExit('Could not find production Get access CTA anchor')
               html = html.replace(target, demo + target)
-              path.write_text(html)
-              print(f'Injected interactive demo CTA beside {count} Get access button(s).')
-          else:
-              print('Interactive demo CTA already present; no homepage change needed.')
 
+          fix_id = 'tachyon-mobile-nav-fix'
+          mobile_fix = '''<style id="tachyon-mobile-nav-fix">
+          @media(max-width:580px){
+            .nav .nav-inner{gap:8px!important}
+            .nav .nav-actions{gap:6px!important}
+            .nav .nav-actions .tachyon-demo-cta,
+            .nav .nav-actions .btn.primary{
+              width:auto!important;
+              min-width:0!important;
+              min-height:0!important;
+              padding:8px 11px!important;
+              font-size:11px!important;
+              line-height:1.1!important;
+              white-space:nowrap!important;
+              border-radius:999px!important;
+            }
+            .nav .mobile-toggle{
+              font-size:22px!important;
+              padding:4px!important;
+              line-height:1!important;
+            }
+          }
+          </style>'''
+
+          if fix_id in html:
+              start = html.index('<style id="tachyon-mobile-nav-fix">')
+              end = html.index('</style>', start) + len('</style>')
+              html = html[:start] + mobile_fix + html[end:]
+          else:
+              html = html.replace('</head>', mobile_fix + '</head>', 1)
+
+          path.write_text(html)
           assert 'href="/demo/"' in html
           assert marker in html
+          assert fix_id in html
           PY
-      - name: Commit homepage CTA
+      - name: Commit homepage patch
         shell: bash
         run: |
           set -euo pipefail
@@ -51,5 +81,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Add Try Tachyon interactive demo CTA'
+          git commit -m 'Fix mobile nav button sizing in production homepage'
           git push origin HEAD:main
