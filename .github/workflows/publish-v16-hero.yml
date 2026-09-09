@@ -21,9 +21,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat v16/hero/h0.txt v16/hero/hrest.txt | tr -d '\r\n' | base64 -d > assets/hero.webp
-          test "$(wc -c < assets/hero.webp)" -gt 20000
+          cat v16/hero/chunk00.txt v16/hero/chunk01_02.txt v16/hero/chunk03_04.txt v16/hero/chunk05_06.txt | tr -d '\r\n' | base64 -d > assets/hero.webp
+          test "$(wc -c < assets/hero.webp)" -eq 24730
           file assets/hero.webp | grep -qi 'Web/P image'
+          test "$(sha256sum assets/hero.webp | cut -d' ' -f1)" = 'f0e891f558521fc70c545c214278e366f50a582e10931b3e9b838d9f985a43de'
       - name: Commit hero to main
         shell: bash
         run: |
