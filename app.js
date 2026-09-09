@@ -1,3 +1,28 @@
+// Mobile-only nav polish. Hero CTAs intentionally unchanged.
+const mobileNavPolish = document.createElement('style');
+mobileNavPolish.textContent = `
+@media (max-width: 580px) {
+  .nav-inner { gap: 8px !important; }
+  .nav-actions { gap: 6px !important; }
+  .nav-actions .btn {
+    padding: 9px 12px !important;
+    min-height: 38px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+  .nav-actions .secondary {
+    display: inline-flex !important;
+  }
+  .mobile-toggle {
+    padding: 6px !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+  }
+}
+`;
+document.head.appendChild(mobileNavPolish);
+
 const toggle = document.querySelector('.mobile-toggle');
 const menu = document.querySelector('.mobile-menu');
 
