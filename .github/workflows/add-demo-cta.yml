@@ -23,11 +23,11 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('index.html')
           html = path.read_text()
 
-          # Preserve the interactive demo CTA.
           marker = 'tachyon-demo-cta'
           target = '<a class="btn primary" href="#pricing">Get access</a>'
           demo = '<a class="btn tachyon-demo-cta" href="/demo/" style="background:#101010!important;color:#fff!important;border-color:#3a3a3a!important">Try Tachyon</a>'
@@ -37,7 +37,6 @@ jobs:
                   raise SystemExit('Could not find production Get access CTA anchor')
               html = html.replace(target, demo + target)
 
-          # Preserve compact mobile nav sizing.
           fix_id = 'tachyon-mobile-nav-fix'
           mobile_fix = '''<style id="tachyon-mobile-nav-fix">
           @media(max-width:580px){
@@ -45,20 +44,11 @@ jobs:
             .nav .nav-actions{gap:6px!important}
             .nav .nav-actions .tachyon-demo-cta,
             .nav .nav-actions .btn.primary{
-              width:auto!important;
-              min-width:0!important;
-              min-height:0!important;
-              padding:8px 11px!important;
-              font-size:11px!important;
-              line-height:1.1!important;
-              white-space:nowrap!important;
-              border-radius:999px!important;
+              width:auto!important;min-width:0!important;min-height:0!important;
+              padding:8px 11px!important;font-size:11px!important;line-height:1.1!important;
+              white-space:nowrap!important;border-radius:999px!important;
             }
-            .nav .mobile-toggle{
-              font-size:22px!important;
-              padding:4px!important;
-              line-height:1!important;
-            }
+            .nav .mobile-toggle{font-size:22px!important;padding:4px!important;line-height:1!important}
           }
           </style>'''
           if fix_id in html:
@@ -68,24 +58,39 @@ jobs:
           else:
               html = html.replace('</head>', mobile_fix + '</head>', 1)
 
-          # Move the hero image above the large View pricing / Explore workspace buttons.
-          section_start = html.index('<section class="hero">')
-          section_end = html.index('</section>', section_start)
-          hero = html[section_start:section_end]
-          actions_start = hero.index('<div class="hero-actions">')
-          actions_end = hero.index('</div>', actions_start) + len('</div>')
-          visual_start = hero.index('<div class="hero-visual">')
-          visual_end = hero.index('</div>', visual_start) + len('</div>')
+          def div_block(text, class_name):
+              m = re.search(r'<div\b[^>]*class=["\'][^"\']*\b' + re.escape(class_name) + r'\b[^"\']*["\'][^>]*>', text)
+              if not m:
+                  raise SystemExit(f'Could not find {class_name} block')
+              token_re = re.compile(r'<div\b[^>]*>|</div>')
+              depth = 0
+              for token in token_re.finditer(text, m.start()):
+                  if token.group().startswith('</div'):
+                      depth -= 1
+                      if depth == 0:
+                          return m.start(), token.end()
+                  else:
+                      depth += 1
+              raise SystemExit(f'Could not close {class_name} block')
 
-          if actions_start < visual_start:
-              actions = hero[actions_start:actions_end]
-              hero = hero[:actions_start] + hero[actions_end:]
-              visual_start = hero.index('<div class="hero-visual">')
-              visual_end = hero.index('</div>', visual_start) + len('</div>')
-              hero = hero[:visual_end] + '\n' + actions + hero[visual_end:]
+          hero_match = re.search(r'<section\b[^>]*class=["\'][^"\']*\bhero\b[^"\']*["\'][^>]*>', html)
+          if not hero_match:
+              raise SystemExit('Could not find hero section')
+          section_start = hero_match.start()
+          section_end = html.find('</section>', hero_match.end())
+          if section_end < 0:
+              raise SystemExit('Could not close hero section')
+          hero = html[section_start:section_end]
+
+          a0, a1 = div_block(hero, 'hero-actions')
+          v0, v1 = div_block(hero, 'hero-visual')
+          if a0 < v0:
+              actions = hero[a0:a1]
+              hero = hero[:a0] + hero[a1:]
+              v0, v1 = div_block(hero, 'hero-visual')
+              hero = hero[:v1] + '\n' + actions + hero[v1:]
               html = html[:section_start] + hero + html[section_end:]
 
-          # Tighten spacing for the new hierarchy on desktop and mobile.
           order_id = 'tachyon-hero-order-fix'
           order_fix = '''<style id="tachyon-hero-order-fix">
           .hero .hero-visual{margin-top:32px!important}
@@ -102,10 +107,16 @@ jobs:
           else:
               html = html.replace('</head>', order_fix + '</head>', 1)
 
+          # Verify order inside the actual hero section before writing.
+          hero_match = re.search(r'<section\b[^>]*class=["\'][^"\']*\bhero\b[^"\']*["\'][^>]*>', html)
+          section_end = html.find('</section>', hero_match.end())
+          hero = html[hero_match.start():section_end]
+          a0, _ = div_block(hero, 'hero-actions')
+          v0, _ = div_block(hero, 'hero-visual')
+          if not v0 < a0:
+              raise SystemExit('Hero reorder verification failed')
+
           path.write_text(html)
-          assert html.index('<div class="hero-visual">', section_start) < html.index('<div class="hero-actions">', section_start)
-          assert order_id in html
-          assert fix_id in html
           PY
       - name: Commit homepage patch
         shell: bash
