@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>Tachyon AIO — Interactive Demo</title>
+<meta name="description" content="Explore the Tachyon AIO interface in a safe browser demo. All actions are simulated and no retailer requests are sent.">
+<style>
+:root{--bg:#050505;--panel:#090a0b;--panel2:#0d0f11;--line:#23272b;--line2:#32383e;--text:#f5f5f5;--muted:#8d959d;--soft:#626a72;--good:#cfd5d9;--radius:14px;--shadow:0 24px 70px rgba(0,0,0,.42)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050505;color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+body{background:radial-gradient(circle at 55% -20%,rgba(255,255,255,.05),transparent 34rem),#050505;overflow-x:hidden}
+.app{min-height:100vh;display:grid;grid-template-columns:236px minmax(0,1fr);grid-template-rows:68px 1fr}
+.topbar{grid-column:1/-1;position:sticky;top:0;z-index:30;height:68px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid #202327;background:rgba(5,5,5,.92);backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:11px;min-width:218px;font-weight:900;letter-spacing:-.03em}.mark{width:37px;height:37px;border:1px solid #34383d;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,#151719,#08090a);font-size:16px}.brand small{display:block;color:#777f87;font-size:9px;letter-spacing:.17em;text-transform:uppercase;margin-top:2px}
+.demo-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid #383d42;border-radius:999px;padding:7px 10px;color:#c7ccd0;background:#0d0f10;font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.demo-badge i{width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff8}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}.top-link,.primary{border:1px solid #2d3237;border-radius:999px;padding:9px 13px;background:#0c0e10;color:#b9c0c6;font-size:11px;font-weight:850}.primary{background:#fff;color:#050505;border-color:#fff}.primary:hover{background:#e9e9e9}.top-link:hover{border-color:#4b5259;color:#fff}
+.sidebar{grid-row:2;position:sticky;top:68px;height:calc(100vh - 68px);border-right:1px solid #202327;background:#070809;padding:16px 12px;display:flex;flex-direction:column;gap:6px;overflow:auto}.side-label{padding:8px 11px 6px;color:#555d65;font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.nav-btn{width:100%;min-height:40px;border:1px solid transparent;border-radius:9px;background:transparent;color:#828a92;text-align:left;padding:0 12px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:800;transition:.14s}.nav-btn span:first-child{width:18px;text-align:center;color:#707880}.nav-btn:hover{color:#e7eaec;background:#0e1113;border-color:#1d2226}.nav-btn.active{background:#15191c;color:#fff;border-color:#353c42;box-shadow:inset 0 0 0 1px #ffffff05}.side-bottom{margin-top:auto;border:1px solid #22272b;border-radius:11px;padding:13px;background:#0a0c0e}.side-bottom strong{display:block;font-size:11px}.side-bottom p{margin:6px 0 0;color:#697179;font-size:10px;line-height:1.5}
+.main{grid-column:2;grid-row:2;min-width:0;padding:24px 28px 52px}.view{display:none;max-width:1500px;margin:0 auto}.view.active{display:block}.heading{display:flex;align-items:flex-end;gap:18px;margin-bottom:20px}.heading>div:first-child{min-width:0}.eyebrow{color:#697179;font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px}h1{font-size:28px;line-height:1;margin:0;letter-spacing:-.04em}h2{font-size:15px;margin:0;letter-spacing:-.02em}.heading p{margin:8px 0 0;color:#7c848b;font-size:12px}.heading-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:36px;border:1px solid #2b3035;border-radius:8px;background:#0d1012;color:#aab1b7;padding:0 12px;font-size:10px;font-weight:900;letter-spacing:.03em}.btn:hover{border-color:#4a5157;color:#fff;background:#13171a}.btn.white{background:#fff;border-color:#fff;color:#050505}.btn.white:hover{background:#e8e8e8}.btn:disabled{opacity:.38;cursor:not-allowed}
+.notice{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid #2b3035;border-radius:10px;background:#0c0e10;color:#8f979e;font-size:10px;margin-bottom:16px}.notice strong{color:#e9ebed}.notice:before{content:"";width:6px;height:6px;background:#fff;border-radius:50%;box-shadow:0 0 9px #fff7}
+.grid{display:grid;gap:12px}.stats{grid-template-columns:repeat(4,1fr);margin-bottom:12px}.card{border:1px solid #22272b;border-radius:12px;background:linear-gradient(180deg,#0d0f11,#090a0b);box-shadow:0 12px 36px rgba(0,0,0,.16)}.stat{padding:17px}.stat-label{color:#687078;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.stat-value{font-size:27px;font-weight:900;letter-spacing:-.05em;margin-top:9px}.stat-foot{color:#666f77;font-size:9px;margin-top:4px}.two-col{grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr)}.panel-head{height:48px;padding:0 15px;display:flex;align-items:center;border-bottom:1px solid #202429}.panel-head span{margin-left:auto;color:#646c73;font-size:9px}.activity{padding:4px 14px 8px}.activity-row{display:grid;grid-template-columns:76px 1fr auto;gap:12px;align-items:center;min-height:47px;border-bottom:1px solid #191d20;font-size:10px}.activity-row:last-child{border:0}.activity-row time{color:#596169}.activity-row strong{font-size:10px}.activity-row small{color:#687078}.pill{display:inline-flex;align-items:center;border:1px solid #30363b;border-radius:999px;padding:5px 8px;color:#9aa2a9;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.pill.good{background:#e8e8e8;color:#0a0a0a;border-color:#e8e8e8}.pill.running{border-color:#525a61;color:#d8dcdf}.pill.paused{color:#777f86}.retailer-list{padding:13px;display:grid;gap:8px}.retailer-item{border:1px solid #20252a;border-radius:9px;background:#090b0d;padding:12px;display:flex;align-items:center;gap:10px}.retailer-icon{width:30px;height:30px;border:1px solid #343a40;border-radius:8px;display:grid;place-items:center;color:#d9dde0;font-size:10px;font-weight:950}.retailer-item strong{display:block;font-size:10px}.retailer-item small{display:block;color:#646c74;font-size:8px;margin-top:3px}.dot{margin-left:auto;width:6px;height:6px;background:#d7dbde;border-radius:50%}
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #22272b;border-bottom:0;border-radius:12px 12px 0 0;background:#0c0e10}.search{min-width:180px;flex:1;max-width:330px;height:34px;border:1px solid #272d32;border-radius:8px;background:#07090a;color:#e6e8ea;padding:0 11px;font-size:10px;outline:none}.search:focus{border-color:#555e66}.table-wrap{overflow:auto;border:1px solid #22272b;border-radius:0 0 12px 12px;background:#090b0c}.table{width:100%;border-collapse:collapse;min-width:820px}.table th{height:38px;text-align:left;padding:0 13px;border-bottom:1px solid #24292e;color:#596169;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;background:#0b0d0f}.table td{height:49px;padding:0 13px;border-bottom:1px solid #191d20;color:#a5adb4;font-size:10px}.table tr:last-child td{border-bottom:0}.table tbody tr:hover{background:#0d1012}.table strong{color:#e7eaec;font-size:10px}.task-actions{display:flex;gap:5px}.icon-btn{width:29px;height:29px;border:1px solid #272d32;border-radius:7px;background:#0b0d0f;color:#858d94;display:grid;place-items:center}.icon-btn:hover{border-color:#505860;color:#fff}.status-cell{font-weight:800}.status-cell[data-state="success"]{color:#f4f4f4}.status-cell[data-state="running"]{color:#c2c8cd}.status-cell[data-state="idle"]{color:#737b82}
+.feature-grid{grid-template-columns:repeat(3,1fr)}.feature{padding:17px}.feature .num{font-size:8px;color:#5f676f;font-weight:900;letter-spacing:.14em}.feature h3{font-size:14px;margin:20px 0 8px}.feature p{color:#707880;font-size:10px;line-height:1.55;margin:0}.feature .btn{margin-top:16px;width:100%}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:grid;gap:6px}.field label{font-size:8px;color:#697179;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.field input,.field select{height:38px;border:1px solid #2a3035;border-radius:8px;background:#080a0c;color:#e4e7e9;padding:0 10px;font-size:10px;outline:none}.field input:focus,.field select:focus{border-color:#555e66}.field.full{grid-column:1/-1}
+.settings-grid{grid-template-columns:repeat(2,1fr)}.setting{padding:15px;display:flex;align-items:center;gap:14px}.setting strong{font-size:10px;display:block}.setting small{font-size:9px;color:#687078;display:block;margin-top:4px}.toggle{margin-left:auto;width:38px;height:21px;border-radius:999px;border:1px solid #363c42;background:#0a0c0e;padding:2px;transition:.15s}.toggle:after{content:"";display:block;width:15px;height:15px;border-radius:50%;background:#6c747b;transition:.15s}.toggle.on{background:#e5e5e5;border-color:#e5e5e5}.toggle.on:after{background:#090909;transform:translateX(17px)}
+.modal-backdrop{position:fixed;inset:0;z-index:90;background:#000b;backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(580px,100%);border:1px solid #353b40;border-radius:15px;background:#0a0c0e;box-shadow:var(--shadow);overflow:hidden}.modal-head{height:56px;display:flex;align-items:center;padding:0 17px;border-bottom:1px solid #23282c}.modal-head strong{font-size:13px}.close{margin-left:auto;width:30px;height:30px;border:1px solid #2a3035;border-radius:7px;background:#0b0d0f;color:#929aa1}.modal-body{padding:17px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 17px 17px}.toast{position:fixed;left:50%;bottom:24px;z-index:120;transform:translate(-50%,18px);opacity:0;pointer-events:none;border:1px solid #444b51;background:#f2f2f2;color:#090909;border-radius:999px;padding:10px 15px;font-size:10px;font-weight:900;transition:.2s;box-shadow:0 15px 45px #0008}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1000px){.stats{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.feature-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.app{display:block}.topbar{height:62px;padding:0 12px}.brand{min-width:0}.brand small{display:none}.demo-badge{display:none}.top-actions .top-link{display:none}.sidebar{position:sticky;top:62px;z-index:25;height:auto;border-right:0;border-bottom:1px solid #202327;padding:8px;flex-direction:row;overflow-x:auto;background:#070809}.side-label,.side-bottom{display:none}.nav-btn{min-width:max-content;width:auto;padding:0 11px;min-height:36px}.main{padding:18px 13px 38px}.heading{align-items:flex-start;flex-direction:column}.heading-actions{margin-left:0}.stats,.feature-grid,.settings-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.topbar .primary{padding:8px 11px}.activity-row{grid-template-columns:64px 1fr}.activity-row .pill{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <a class="brand" href="/"><span class="mark">T</span><span>TACHYON AIO<small>Interactive product demo</small></span></a>
+  <span class="demo-badge"><i></i> Demo mode</span>
+  <div class="top-actions"><a class="top-link" href="/">Back to site</a><a class="primary" href="/#pricing">Get Access</a></div>
+</header>
+<aside class="sidebar" id="sidebar">
+  <div class="side-label">Workspace</div>
+  <button class="nav-btn active" data-view="dashboard"><span>◈</span>Dashboard</button>
+  <button class="nav-btn" data-view="drops"><span>◫</span>Drops</button>
+  <button class="nav-btn" data-view="tasks"><span>▣</span>Tasks</button>
+  <button class="nav-btn" data-view="automation"><span>◷</span>Automation</button>
+  <button class="nav-btn" data-view="orders"><span>□</span>Orders</button>
+  <button class="nav-btn" data-view="profiles"><span>♙</span>Profiles</button>
+  <button class="nav-btn" data-view="generator"><span>◇</span>Generator</button>
+  <button class="nav-btn" data-view="accounts"><span>▤</span>Accounts</button>
+  <button class="nav-btn" data-view="proxies"><span>⇄</span>Proxies</button>
+  <button class="nav-btn" data-view="settings"><span>⚙</span>Settings</button>
+  <div class="side-bottom"><strong>Safe browser sandbox</strong><p>This demo never sends requests to retailers, payment providers, proxies, or Tachyon services.</p></div>
+</aside>
+<main class="main">
+<section class="view active" id="view-dashboard">
+  <div class="heading"><div><div class="eyebrow">Command center</div><h1>Dashboard</h1><p>A simulated look at the Tachyon workspace.</p></div><div class="heading-actions"><button class="btn" data-go="tasks">Open Tasks</button><button class="btn white" data-open-task>Create Demo Task</button></div></div>
+  <div class="notice"><strong>DEMO MODE</strong> Everything here is simulated locally in your browser. No retailer requests, monitoring, carts, or checkouts occur.</div>
+  <div class="grid stats">
+    <div class="card stat"><div class="stat-label">Active tasks</div><div class="stat-value" id="statActive">4</div><div class="stat-foot">Across 3 task groups</div></div>
+    <div class="card stat"><div class="stat-label">Supported retailers</div><div class="stat-value">4</div><div class="stat-foot">Focused drop coverage</div></div>
+    <div class="card stat"><div class="stat-label">Profiles</div><div class="stat-value">12</div><div class="stat-foot">Demo billing profiles</div></div>
+    <div class="card stat"><div class="stat-label">Proxy health</div><div class="stat-value">98%</div><div class="stat-foot">Simulated pool status</div></div>
+  </div>
+  <div class="grid two-col">
+    <div class="card"><div class="panel-head"><h2>Recent activity</h2><span>LOCAL SIMULATION</span></div><div class="activity" id="activityFeed">
+      <div class="activity-row"><time>10:42:08</time><div><strong>Target task group started</strong><small> · 4 demo tasks</small></div><span class="pill running">Running</span></div>
+      <div class="activity-row"><time>10:41:53</time><div><strong>Pokémon Center monitor ready</strong><small> · Scarlet &amp; Violet</small></div><span class="pill">Ready</span></div>
+      <div class="activity-row"><time>10:40:21</time><div><strong>Proxy pool checked</strong><small> · US-ISP-01</small></div><span class="pill good">Healthy</span></div>
+      <div class="activity-row"><time>10:38:17</time><div><strong>Profile group loaded</strong><small> · Personal Set A</small></div><span class="pill">12 Profiles</span></div>
+    </div></div>
+    <div class="card"><div class="panel-head"><h2>Retailers</h2><span>DEMO</span></div><div class="retailer-list">
+      <div class="retailer-item"><span class="retailer-icon">PC</span><div><strong>Pokémon Center</strong><small>Monitoring workspace</small></div><i class="dot"></i></div>
+      <div class="retailer-item"><span class="retailer-icon">T</span><div><strong>Target</strong><small>Task workspace</small></div><i class="dot"></i></div>
+      <div class="retailer-item"><span class="retailer-icon">W</span><div><strong>Walmart</strong><small>Task workspace</small></div><i class="dot"></i></div>
+      <div class="retailer-item"><span class="retailer-icon">A</span><div><strong>Amazon</strong><small>Monitoring workspace</small></div><i class="dot"></i></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="view" id="view-drops">
+  <div class="heading"><div><div class="eyebrow">Release calendar</div><h1>Drops</h1><p>Explore how upcoming releases can be organized inside Tachyon.</p></div><div class="heading-actions"><button class="btn white" data-demo-toast="Demo drop added">Add Demo Drop</button></div></div>
+  <div class="notice"><strong>SIMULATED DATA</strong> Product names, times, and availability below are examples for the interactive demo.</div>
+  <div class="table-wrap" style="border-radius:12px"><table class="table"><thead><tr><th>Release</th><th>Retailer</th><th>Window</th><th>Priority</th><th>Status</th></tr></thead><tbody>
+  <tr><td><strong>Scarlet &amp; Violet Collection</strong></td><td>Pokémon Center</td><td>10:00 AM</td><td>High</td><td><span class="pill running">Watching</span></td></tr>
+  <tr><td><strong>Premium Collection</strong></td><td>Target</td><td>12:00 PM</td><td>High</td><td><span class="pill">Scheduled</span></td></tr>
+  <tr><td><strong>Booster Bundle</strong></td><td>Walmart</td><td>2:00 PM</td><td>Normal</td><td><span class="pill">Scheduled</span></td></tr>
+  <tr><td><strong>Collector Box</strong></td><td>Amazon</td><td>Rolling</td><td>Normal</td><td><span class="pill paused">Idle</span></td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="view" id="view-tasks">
+  <div class="heading"><div><div class="eyebrow">Task engine</div><h1>Tasks</h1><p>Create, organize, and run simulated tasks just like a product workspace.</p></div><div class="heading-actions"><button class="btn" id="stopAll">Stop All</button><button class="btn" id="startAll">Start All</button><button class="btn white" data-open-task>+ Create Task</button></div></div>
+  <div class="notice"><strong>SAFE SIMULATION</strong> Starting a task only animates local status text. It cannot monitor, cart, checkout, or contact any retailer.</div>
+  <div class="toolbar"><input class="search" id="taskSearch" placeholder="Search demo tasks"><button class="btn" data-demo-toast="Demo task group created">+ Group</button></div>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Task</th><th>Retailer</th><th>Product</th><th>Profile</th><th>Proxy Pool</th><th>Status</th><th>Actions</th></tr></thead><tbody id="taskRows">
+    <tr data-task><td><strong>#0001</strong></td><td>Pokémon Center</td><td>Scarlet &amp; Violet Collection</td><td>Jordan 01</td><td>US ISP</td><td class="status-cell" data-state="idle">Idle</td><td><div class="task-actions"><button class="icon-btn run-task" title="Start simulated task">▶</button><button class="icon-btn delete-task" title="Delete">×</button></div></td></tr>
+    <tr data-task><td><strong>#0002</strong></td><td>Target</td><td>Premium Collection</td><td>Jordan 02</td><td>Residential</td><td class="status-cell" data-state="running">Monitoring</td><td><div class="task-actions"><button class="icon-btn run-task">▶</button><button class="icon-btn delete-task">×</button></div></td></tr>
+    <tr data-task><td><strong>#0003</strong></td><td>Walmart</td><td>Booster Bundle</td><td>Jordan 03</td><td>US ISP</td><td class="status-cell" data-state="idle">Idle</td><td><div class="task-actions"><button class="icon-btn run-task">▶</button><button class="icon-btn delete-task">×</button></div></td></tr>
+    <tr data-task><td><strong>#0004</strong></td><td>Amazon</td><td>Collector Box</td><td>Jordan 04</td><td>Residential</td><td class="status-cell" data-state="idle">Idle</td><td><div class="task-actions"><button class="icon-btn run-task">▶</button><button class="icon-btn delete-task">×</button></div></td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="view" id="view-automation">
+  <div class="heading"><div><div class="eyebrow">Automation</div><h1>Automation</h1><p>Preview rules and scheduled actions without connecting to external services.</p></div><div class="heading-actions"><button class="btn white" data-demo-toast="Demo automation created">New Automation</button></div></div>
+  <div class="grid feature-grid">
+    <div class="card feature"><div class="num">01 · SCHEDULE</div><h3>Morning monitor group</h3><p>Start a selected demo task group at a scheduled time.</p><button class="btn" data-demo-toast="Schedule toggled">Enabled · 9:55 AM</button></div>
+    <div class="card feature"><div class="num">02 · RESTOCK</div><h3>Restock response</h3><p>Show how a rule can react when a simulated product event appears.</p><button class="btn" data-demo-toast="Rule toggled">Enabled</button></div>
+    <div class="card feature"><div class="num">03 · LIMIT</div><h3>Task guardrail</h3><p>Preview task limits and automatic stop conditions in a safe sandbox.</p><button class="btn" data-demo-toast="Guardrail edited">Edit Demo Rule</button></div>
+  </div>
+</section>
+
+<section class="view" id="view-orders">
+  <div class="heading"><div><div class="eyebrow">Results</div><h1>Orders</h1><p>Example order/result history for interface exploration only.</p></div></div>
+  <div class="notice"><strong>NO REAL ORDERS</strong> These records are fabricated demo entries and do not represent actual purchases.</div>
+  <div class="table-wrap" style="border-radius:12px"><table class="table"><thead><tr><th>ID</th><th>Retailer</th><th>Product</th><th>Profile</th><th>Time</th><th>Result</th></tr></thead><tbody>
+    <tr><td><strong>DM-4821</strong></td><td>Target</td><td>Premium Collection</td><td>Jordan 02</td><td>10:31:42</td><td><span class="pill good">Demo Success</span></td></tr>
+    <tr><td><strong>DM-4819</strong></td><td>Pokémon Center</td><td>Booster Bundle</td><td>Jordan 01</td><td>10:24:07</td><td><span class="pill good">Demo Success</span></td></tr>
+    <tr><td><strong>DM-4814</strong></td><td>Amazon</td><td>Collector Box</td><td>Jordan 04</td><td>09:56:11</td><td><span class="pill paused">Demo Stopped</span></td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="view" id="view-profiles">
+  <div class="heading"><div><div class="eyebrow">Identity workspace</div><h1>Profiles</h1><p>Sample profile organization with intentionally fake information.</p></div><div class="heading-actions"><button class="btn white" data-demo-toast="Demo profile created">+ Add Profile</button></div></div>
+  <div class="table-wrap" style="border-radius:12px"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Region</th><th>Group</th><th>Status</th></tr></thead><tbody>
+  <tr><td><strong>Jordan 01</strong></td><td>demo01@example.com</td><td>US East</td><td>Personal Set A</td><td><span class="pill">Ready</span></td></tr>
+  <tr><td><strong>Jordan 02</strong></td><td>demo02@example.com</td><td>US East</td><td>Personal Set A</td><td><span class="pill">Ready</span></td></tr>
+  <tr><td><strong>Jordan 03</strong></td><td>demo03@example.com</td><td>US East</td><td>Personal Set B</td><td><span class="pill">Ready</span></td></tr>
+  <tr><td><strong>Jordan 04</strong></td><td>demo04@example.com</td><td>US East</td><td>Personal Set B</td><td><span class="pill">Ready</span></td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="view" id="view-generator">
+  <div class="heading"><div><div class="eyebrow">Generator</div><h1>Generator</h1><p>Explore the Generator workspace with simulated local sessions.</p></div></div>
+  <div class="notice"><strong>DEMO ONLY</strong> Session buttons below do not launch browsers, generate cookies, capture tokens, or contact retailer sites.</div>
+  <div class="grid feature-grid">
+    <div class="card feature"><div class="num">TARGET · ACCOUNT</div><h3>Account Sessions</h3><p>Preview the workspace used to organize account-session generation.</p><button class="btn white" data-demo-toast="Simulated account session started">Start Demo Session</button></div>
+    <div class="card feature"><div class="num">TARGET · CART</div><h3>Cart Sessions</h3><p>Preview the cart-session interface without producing any live session data.</p><button class="btn white" data-demo-toast="Simulated cart session started">Start Demo Session</button></div>
+    <div class="card feature"><div class="num">GROUPS</div><h3>My Generator Groups</h3><p>Create and organize fake groups to see how the workflow feels.</p><button class="btn" data-demo-toast="Demo generator group created">+ New Demo Group</button></div>
+  </div>
+</section>
+
+<section class="view" id="view-accounts">
+  <div class="heading"><div><div class="eyebrow">Retailer accounts</div><h1>Accounts</h1><p>Explore account organization using fabricated demo credentials.</p></div><div class="heading-actions"><button class="btn white" data-demo-toast="Demo account added">+ Add Account</button></div></div>
+  <div class="table-wrap" style="border-radius:12px"><table class="table"><thead><tr><th>Label</th><th>Retailer</th><th>Email</th><th>Group</th><th>State</th></tr></thead><tbody>
+    <tr><td><strong>PC Main</strong></td><td>Pokémon Center</td><td>pc-demo@example.com</td><td>Primary</td><td><span class="pill">Ready</span></td></tr>
+    <tr><td><strong>Target A</strong></td><td>Target</td><td>target-demo@example.com</td><td>Primary</td><td><span class="pill">Ready</span></td></tr>
+    <tr><td><strong>Walmart A</strong></td><td>Walmart</td><td>walmart-demo@example.com</td><td>Primary</td><td><span class="pill">Ready</span></td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="view" id="view-proxies">
+  <div class="heading"><div><div class="eyebrow">Network workspace</div><h1>Proxies</h1><p>Simulated proxy-pool management with non-routable example addresses.</p></div><div class="heading-actions"><button class="btn" id="testProxies">Test All</button><button class="btn white" data-demo-toast="Demo pool added">+ Add Pool</button></div></div>
+  <div class="table-wrap" style="border-radius:12px"><table class="table"><thead><tr><th>Pool</th><th>Type</th><th>Entries</th><th>Average</th><th>Health</th></tr></thead><tbody id="proxyRows">
+    <tr><td><strong>US ISP</strong></td><td>ISP</td><td>50</td><td class="proxy-speed">42 ms</td><td><span class="pill good">Healthy</span></td></tr>
+    <tr><td><strong>Residential</strong></td><td>Residential</td><td>120</td><td class="proxy-speed">118 ms</td><td><span class="pill good">Healthy</span></td></tr>
+    <tr><td><strong>Backup Pool</strong></td><td>ISP</td><td>25</td><td class="proxy-speed">67 ms</td><td><span class="pill">Ready</span></td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="view" id="view-settings">
+  <div class="heading"><div><div class="eyebrow">Preferences</div><h1>Settings</h1><p>Change demo-only preferences. Nothing is saved to a Tachyon account.</p></div></div>
+  <div class="grid settings-grid">
+    <div class="card setting"><div><strong>Desktop notifications</strong><small>Preview preference only</small></div><button class="toggle on" aria-label="Toggle desktop notifications"></button></div>
+    <div class="card setting"><div><strong>Compact task rows</strong><small>Reduce visual density</small></div><button class="toggle" aria-label="Toggle compact rows"></button></div>
+    <div class="card setting"><div><strong>Auto-open activity</strong><small>Show recent demo events</small></div><button class="toggle on" aria-label="Toggle auto-open activity"></button></div>
+    <div class="card setting"><div><strong>Demo sound effects</strong><small>Muted by default</small></div><button class="toggle" aria-label="Toggle demo sound"></button></div>
+  </div>
+</section>
+</main>
+</div>
+
+<div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+  <div class="modal"><div class="modal-head"><strong id="taskModalTitle">Create Demo Task</strong><button class="close" id="closeTask" aria-label="Close">×</button></div>
+  <div class="modal-body"><div class="form-grid">
+    <div class="field"><label>Retailer</label><select id="newRetailer"><option>Pokémon Center</option><option>Target</option><option>Walmart</option><option>Amazon</option></select></div>
+    <div class="field"><label>Profile</label><select id="newProfile"><option>Jordan 01</option><option>Jordan 02</option><option>Jordan 03</option><option>Jordan 04</option></select></div>
+    <div class="field full"><label>Product / Keyword</label><input id="newProduct" value="Demo Product" maxlength="80"></div>
+    <div class="field"><label>Proxy pool</label><select id="newProxy"><option>US ISP</option><option>Residential</option><option>Backup Pool</option></select></div>
+    <div class="field"><label>Group</label><select id="newGroup"><option>Primary</option><option>Restocks</option><option>Testing</option></select></div>
+  </div></div>
+  <div class="modal-actions"><button class="btn" id="cancelTask">Cancel</button><button class="btn white" id="createTask">Create Demo Task</button></div></div>
+</div>
+<div class="toast" id="toast">Demo action completed</div>
+<script>
+(()=>{
+'use strict';
+let nextTask=5;
+const views=[...document.querySelectorAll('.view')];
+const nav=[...document.querySelectorAll('.nav-btn[data-view]')];
+const toast=document.getElementById('toast');
+const modal=document.getElementById('taskModal');
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove('show'),1800)}
+function openView(name){views.forEach(v=>v.classList.toggle('active',v.id==='view-'+name));nav.forEach(b=>b.classList.toggle('active',b.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'})}
+nav.forEach(b=>b.addEventListener('click',()=>openView(b.dataset.view)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>openView(b.dataset.go)));
+document.querySelectorAll('[data-demo-toast]').forEach(b=>b.addEventListener('click',()=>showToast(b.dataset.demoToast)));
+document.querySelectorAll('[data-open-task]').forEach(b=>b.addEventListener('click',()=>modal.classList.add('open')));
+function closeModal(){modal.classList.remove('open')}
+document.getElementById('closeTask').onclick=closeModal;document.getElementById('cancelTask').onclick=closeModal;modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function taskRows(){return [...document.querySelectorAll('#taskRows tr[data-task]')]}
+function updateCount(){document.getElementById('statActive').textContent=taskRows().filter(r=>r.querySelector('.status-cell').dataset.state==='running').length}
+function simulate(row){const cell=row.querySelector('.status-cell');if(row._timer)clearTimeout(row._timer);const states=[['Initializing','running'],['Monitoring','running'],['Product Found · Demo','running'],['Adding to Cart · Demo','running'],['Demo Success','success']];let i=0;const step=()=>{if(!row.isConnected)return;cell.textContent=states[i][0];cell.dataset.state=states[i][1];updateCount();if(i<states.length-1){i++;row._timer=setTimeout(step,750)}else showToast('Simulated task completed — no retailer action occurred')};step()}
+function bindTask(row){row.querySelector('.run-task').addEventListener('click',()=>simulate(row));row.querySelector('.delete-task').addEventListener('click',()=>{if(row._timer)clearTimeout(row._timer);row.remove();updateCount();showToast('Demo task deleted')})}
+taskRows().forEach(bindTask);
+document.getElementById('createTask').addEventListener('click',()=>{const retailer=document.getElementById('newRetailer').value,profile=document.getElementById('newProfile').value,product=(document.getElementById('newProduct').value||'Demo Product').replace(/[<>]/g,''),proxy=document.getElementById('newProxy').value;const tr=document.createElement('tr');tr.dataset.task='';tr.innerHTML='<td><strong>#'+String(nextTask++).padStart(4,'0')+'</strong></td><td></td><td></td><td></td><td></td><td class="status-cell" data-state="idle">Idle</td><td><div class="task-actions"><button class="icon-btn run-task">▶</button><button class="icon-btn delete-task">×</button></div></td>';const td=tr.querySelectorAll('td');td[1].textContent=retailer;td[2].textContent=product;td[3].textContent=profile;td[4].textContent=proxy;document.getElementById('taskRows').appendChild(tr);bindTask(tr);closeModal();openView('tasks');showToast('Demo task created')});
+document.getElementById('startAll').addEventListener('click',()=>{taskRows().forEach((r,i)=>setTimeout(()=>simulate(r),i*120));showToast('Starting simulated tasks')});
+document.getElementById('stopAll').addEventListener('click',()=>{taskRows().forEach(r=>{if(r._timer)clearTimeout(r._timer);const c=r.querySelector('.status-cell');c.textContent='Stopped · Demo';c.dataset.state='idle'});updateCount();showToast('All demo tasks stopped')});
+document.getElementById('taskSearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();taskRows().forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(q))});
+document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click',()=>{t.classList.toggle('on');showToast('Demo preference changed')}));
+document.getElementById('testProxies').addEventListener('click',()=>{showToast('Running simulated proxy test');document.querySelectorAll('.proxy-speed').forEach((el,i)=>{el.textContent='Testing…';setTimeout(()=>el.textContent=[39,112,64][i]+' ms',800+i*180)})});
+updateCount();
+})();
+</script>
+</body>
+</html>
