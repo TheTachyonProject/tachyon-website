@@ -1,0 +1,37 @@
+name: V16 HQ hero
+on:
+  push:
+    paths: ['.github/workflows/v16-hq-hero.yml']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore original HQ hero and rebuild embedded homepage
+        run: |
+          set -e
+          git show dfc52745108128929b63e2a590bf878774205577:assets/hero.webp > /tmp/hero.webp || true
+          if [ $(wc -c < /tmp/hero.webp) -lt 100000 ]; then echo 'historical hero is not HQ'; exit 1; fi
+          cp /tmp/hero.webp assets/hero.webp
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,re
+          p=Path('index.html')
+          s=p.read_text()
+          h=base64.b64encode(Path('/tmp/hero.webp').read_bytes()).decode()
+          # Replace every embedded WEBP used by the hero where the old emergency hero appears.
+          old='UklGRpJgAABXRUJQ'
+          pat=r'data:image/webp;base64,'+old+r'[A-Za-z0-9+/=]+'
+          matches=list(re.finditer(pat,s))
+          if not matches: raise SystemExit('old embedded hero not found')
+          s=re.sub(pat,'data:image/webp;base64,'+h,s)
+          p.write_text(s)
+          print('HQ hero bytes',len(Path('/tmp/hero.webp').read_bytes()),'replacements',len(matches))
+          PY
+          git config user.name 'Tachyon V16 Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/hero.webp
+          git commit -m 'V16: restore full-quality hero'
+          git push
