@@ -1,0 +1,84 @@
+name: Build V16 self-contained site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-v16-self-contained.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build self-contained V16 homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import base64, mimetypes, re
+          root=Path('.')
+          html=(root/'index.html').read_text()
+          css=(root/'styles.css').read_text()
+          checkout=(root/'checkout-config.js').read_text()
+          app=(root/'app.js').read_text()
+
+          # Direct checkout URLs: no runtime config dependency.
+          links={
+            'monthly':'https://whop.com/checkout/plan_DulX0ELfxzSyT',
+            'quarterly':'https://whop.com/checkout/plan_73Ny0h9vbhLlp',
+            'annual':'https://whop.com/checkout/plan_7NQhyigSMh7iu',
+            'lifetime':'https://whop.com/checkout/plan_3AurEJr6b252f',
+          }
+          for key,url in links.items():
+              html=re.sub(rf'(data-checkout="{key}"\s+href=")[^"]*(")', rf'\1{url}\2', html)
+
+          # Never hide pricing/cards if JS fails.
+          css += '\n/* V16 launch hardening */\n#pricing .fade,.price-card.fade{opacity:1!important;transform:none!important;}\n'
+
+          # Inline stylesheet and scripts.
+          html=html.replace('<link rel="stylesheet" href="styles.css">', '<style>'+css+'</style>')
+          html=html.replace('<script src="checkout-config.js"></script><script src="app.js"></script>', '<script>'+checkout+'\n'+app+'</script>')
+
+          # Embed every local image referenced by the homepage.
+          refs=set(re.findall(r'(?:src|srcset)="(assets/[^" ]+)"', html))
+          for ref in sorted(refs, key=len, reverse=True):
+              p=root/ref
+              if not p.exists():
+                  raise SystemExit(f'Missing asset: {ref}')
+              mime=mimetypes.guess_type(p.name)[0] or 'application/octet-stream'
+              uri=f'data:{mime};base64,'+base64.b64encode(p.read_bytes()).decode()
+              html=html.replace(ref,uri)
+
+          # Remove manifest/favicon external dependencies from the homepage; logo is already embedded.
+          html=re.sub(r'<link rel="icon"[^>]*>', '', html)
+          html=re.sub(r'<link rel="apple-touch-icon"[^>]*>', '', html)
+          html=re.sub(r'<link rel="manifest"[^>]*>', '', html)
+          html=html.replace('https://tachyonaio.com/assets/hero.webp','https://tachyonaio.com/')
+          html=html.replace('<title>Tachyon AIO — Built for the Drop</title>', '<title>Tachyon AIO — Built for the Drop</title><!-- Tachyon Website V16 -->')
+
+          # Launch checks.
+          assert 'data:image/webp;base64,' in html
+          assert 'assets/hero.webp' not in html
+          assert all(url in html for url in links.values())
+          assert 'Tachyon Website V16' in html
+          (root/'index.html').write_text(html)
+          print('V16 bytes:', (root/'index.html').stat().st_size)
+          PY
+      - name: Commit V16 homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Tachyon V16 Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'V16: self-contained production homepage'
+          git push origin HEAD:main
