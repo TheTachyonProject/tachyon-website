@@ -1,0 +1,55 @@
+name: Wire interactive demo CTA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-demo-cta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-homepage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add Try Tachyon links without rebuilding embedded assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          html = path.read_text()
+          marker = 'tachyon-demo-cta'
+          target = '<a class="btn primary" href="#pricing">Get access</a>'
+          demo = '<a class="btn tachyon-demo-cta" href="/demo/" style="background:#101010!important;color:#fff!important;border-color:#3a3a3a!important">Try Tachyon</a>'
+
+          if marker not in html:
+              count = html.count(target)
+              if count < 1:
+                  raise SystemExit('Could not find production Get access CTA anchor')
+              html = html.replace(target, demo + target)
+              path.write_text(html)
+              print(f'Injected interactive demo CTA beside {count} Get access button(s).')
+          else:
+              print('Interactive demo CTA already present; no homepage change needed.')
+
+          assert 'href="/demo/"' in html
+          assert marker in html
+          PY
+      - name: Commit homepage CTA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Tachyon Website Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Add Try Tachyon interactive demo CTA'
+          git push origin HEAD:main
