@@ -1,37 +1,47 @@
-name: V16 HQ hero
+name: Validate V16 production site
+
 on:
   push:
-    paths: ['.github/workflows/v16-hq-hero.yml']
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - '.github/workflows/v16-hq-hero.yml'
+  workflow_dispatch:
+
 permissions:
-  contents: write
+  contents: read
+
 jobs:
-  publish:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Restore original HQ hero and rebuild embedded homepage
+      - name: Validate production homepage
+        shell: bash
         run: |
-          set -e
-          git show dfc52745108128929b63e2a590bf878774205577:assets/hero.webp > /tmp/hero.webp || true
-          if [ $(wc -c < /tmp/hero.webp) -lt 100000 ]; then echo 'historical hero is not HQ'; exit 1; fi
-          cp /tmp/hero.webp assets/hero.webp
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          import base64,re
-          p=Path('index.html')
-          s=p.read_text()
-          h=base64.b64encode(Path('/tmp/hero.webp').read_bytes()).decode()
-          # Replace every embedded WEBP used by the hero where the old emergency hero appears.
-          old='UklGRpJgAABXRUJQ'
-          pat=r'data:image/webp;base64,'+old+r'[A-Za-z0-9+/=]+'
-          matches=list(re.finditer(pat,s))
-          if not matches: raise SystemExit('old embedded hero not found')
-          s=re.sub(pat,'data:image/webp;base64,'+h,s)
-          p.write_text(s)
-          print('HQ hero bytes',len(Path('/tmp/hero.webp').read_bytes()),'replacements',len(matches))
+
+          html = Path('index.html').read_text(encoding='utf-8')
+          required = [
+              'Tachyon Website V16',
+              'https://whop.com/checkout/plan_DulX0ELfxzSyT',
+              'https://whop.com/checkout/plan_73Ny0h9vbhLlp',
+              'https://whop.com/checkout/plan_7NQhyigSMh7iu',
+              'https://whop.com/checkout/plan_3AurEJr6b252f',
+              'data:image/webp;base64,',
+          ]
+          missing = [value for value in required if value not in html]
+          if missing:
+              raise SystemExit('Missing required production content: ' + ', '.join(missing))
+
+          hero = Path('assets/hero.webp')
+          if not hero.exists() or hero.stat().st_size < 1000:
+              raise SystemExit('Hero asset is missing or invalid')
+
+          print('V16 production validation passed')
+          print('index.html bytes:', Path('index.html').stat().st_size)
+          print('hero.webp bytes:', hero.stat().st_size)
           PY
-          git config user.name 'Tachyon V16 Bot'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/hero.webp
-          git commit -m 'V16: restore full-quality hero'
-          git push
