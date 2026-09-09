@@ -1,47 +1,123 @@
-name: Validate V16 production site
+name: Restore original HQ V15 hero
 
 on:
   push:
     branches: [main]
     paths:
-      - 'index.html'
-      - 'assets/**'
       - '.github/workflows/v16-hq-hero.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  validate:
+  restore:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Validate production homepage
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch verified V15 payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin preview-exact-v15-fix:refs/remotes/origin/preview-exact-v15-fix
+          : > /tmp/tachyon-v15.b64
+          for f in p00.txt p01.txt p02_03.txt p04_05.txt p06_07.txt p08_09.txt; do
+            git show "origin/preview-exact-v15-fix:preview_parts/$f" >> /tmp/tachyon-v15.b64
+          done
+          tr -d '\r\n' < /tmp/tachyon-v15.b64 | base64 -d | gzip -d > /tmp/tachyon-v15.html
+
+      - name: Restore exact full-quality hero without recompression
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          import base64
+          import hashlib
+          import re
 
-          html = Path('index.html').read_text(encoding='utf-8')
+          EXPECTED_SIZE = 210314
+          EXPECTED_SHA256 = '055112dd377150834b9043b7c56689d52c7a91c6683d046655be5c8aac6240f6'
+
+          v15 = Path('/tmp/tachyon-v15.html').read_text(encoding='utf-8')
+
+          candidates = []
+          for raw in re.findall(r'data:image/webp;base64,([^"\']+)', v15):
+              encoded = ''.join(raw.split())
+              try:
+                  data = base64.b64decode(encoded, validate=True)
+              except Exception:
+                  continue
+              candidates.append((len(data), hashlib.sha256(data).hexdigest(), encoded, data))
+
+          if not candidates:
+              raise SystemExit('No embedded WEBP images found in verified V15 payload')
+
+          size, digest, hero_b64, hero_bytes = max(candidates, key=lambda item: item[0])
+          print('Recovered V15 hero bytes:', size)
+          print('Recovered V15 hero sha256:', digest)
+
+          if size != EXPECTED_SIZE:
+              raise SystemExit(f'Unexpected HQ hero size: {size}, expected {EXPECTED_SIZE}')
+          if digest != EXPECTED_SHA256:
+              raise SystemExit(f'Unexpected HQ hero SHA-256: {digest}')
+
+          Path('assets/hero.webp').write_bytes(hero_bytes)
+
+          html_path = Path('index.html')
+          html = html_path.read_text(encoding='utf-8')
+
+          pattern = re.compile(
+              r'<div class="hero-visual fade"><picture>.*?</picture></div>',
+              re.DOTALL,
+          )
+          matches = pattern.findall(html)
+          if len(matches) != 1:
+              raise SystemExit(f'Expected exactly one hero picture block, found {len(matches)}')
+
+          replacement = (
+              '<div class="hero-visual fade"><picture>'
+              f'<source srcset="data:image/webp;base64,{hero_b64}" type="image/webp">'
+              '<img src="assets/hero.webp" alt="Tachyon AIO dashboard showcase" fetchpriority="high">'
+              '</picture></div>'
+          )
+          html = pattern.sub(replacement, html, count=1)
+
+          # Preserve all current V16 commerce/content while proving the hero is now exact HQ.
           required = [
               'Tachyon Website V16',
               'https://whop.com/checkout/plan_DulX0ELfxzSyT',
               'https://whop.com/checkout/plan_73Ny0h9vbhLlp',
               'https://whop.com/checkout/plan_7NQhyigSMh7iu',
               'https://whop.com/checkout/plan_3AurEJr6b252f',
-              'data:image/webp;base64,',
+              f'data:image/webp;base64,{hero_b64[:64]}',
           ]
           missing = [value for value in required if value not in html]
           if missing:
-              raise SystemExit('Missing required production content: ' + ', '.join(missing))
+              raise SystemExit('Production validation failed; missing: ' + ', '.join(missing))
 
-          hero = Path('assets/hero.webp')
-          if not hero.exists() or hero.stat().st_size < 1000:
-              raise SystemExit('Hero asset is missing or invalid')
-
-          print('V16 production validation passed')
-          print('index.html bytes:', Path('index.html').stat().st_size)
-          print('hero.webp bytes:', hero.stat().st_size)
+          html_path.write_text(html, encoding='utf-8')
+          print('Restored exact HQ hero into current V16 homepage')
+          print('New index.html bytes:', html_path.stat().st_size)
           PY
+
+          test "$(wc -c < assets/hero.webp)" -eq 210314
+          test "$(sha256sum assets/hero.webp | cut -d' ' -f1)" = '055112dd377150834b9043b7c56689d52c7a91c6683d046655be5c8aac6240f6'
+
+      - name: Commit HQ hero to production main
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- index.html assets/hero.webp; then
+            echo 'Production already has the exact HQ V15 hero.'
+            exit 0
+          fi
+          git config user.name 'Tachyon HQ Restore Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/hero.webp
+          git commit -m 'Restore original 210KB HQ Tachyon hero'
+          git push origin HEAD:main
