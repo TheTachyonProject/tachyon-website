@@ -517,10 +517,10 @@ html,body{background-color:#050505!important;color:#f5f5f5!important}
   .tachyon-demo-frame{height:500px}
 }
 </style><style id="tachyon-compact-demo-fit">
-/* Fixed mini-app: sidebar navigation stays visible and the demo never needs vertical scrolling. */
+/* Desktop = compact sidebar app. Mobile = dedicated Tasks-first preview. Both fit without internal vertical scrolling. */
 .tachyon-demo-frame{height:455px!important;overflow:hidden!important}
 @media(max-width:900px){.tachyon-demo-frame{height:430px!important}}
-@media(max-width:580px){
+@media(max-width:620px){
   .tachyon-demo-frame{height:405px!important}
   .tachyon-demo-caption{height:32px!important}
 }
@@ -706,4 +706,18 @@ if ('IntersectionObserver' in window) {
 } else {
   remainingFade.forEach(el => el.classList.add('in'));
 }
+</script><script id="tachyon-responsive-demo-source">
+(() => {
+  const frame = document.querySelector('.tachyon-demo-frame');
+  if (!frame) return;
+  const mobile = window.matchMedia('(max-width: 620px)');
+  const sync = () => {
+    const next = mobile.matches ? '/demo/mobile-embed.html' : '/demo/embed.html';
+    const current = new URL(frame.src, window.location.href).pathname;
+    if (current !== next) frame.src = next;
+  };
+  sync();
+  if (mobile.addEventListener) mobile.addEventListener('change', sync);
+  else mobile.addListener(sync);
+})();
 </script></body></html>
