@@ -82,6 +82,7 @@ jobs:
               raise SystemExit('Could not close hero section')
           hero = html[section_start:section_end]
 
+          # Keep the visual before the large hero CTAs.
           a0, a1 = div_block(hero, 'hero-actions')
           v0, v1 = div_block(hero, 'hero-visual')
           if a0 < v0:
@@ -89,15 +90,41 @@ jobs:
               hero = hero[:a0] + hero[a1:]
               v0, v1 = div_block(hero, 'hero-visual')
               hero = hero[:v1] + '\n' + actions + hero[v1:]
-              html = html[:section_start] + hero + html[section_end:]
+
+          # Replace the static promotional hero art with the real interactive demo.
+          v0, v1 = div_block(hero, 'hero-visual')
+          live_demo = '''<div class="hero-visual fade tachyon-demo-shell">
+            <div class="tachyon-demo-caption">
+              <span><i></i> Live interactive demo</span>
+              <a href="/demo/">Open full demo ↗</a>
+            </div>
+            <iframe class="tachyon-demo-frame" src="/demo/" title="Interactive Tachyon AIO demo" loading="eager" referrerpolicy="same-origin"></iframe>
+          </div>'''
+          hero = hero[:v0] + live_demo + hero[v1:]
+          html = html[:section_start] + hero + html[section_end:]
 
           order_id = 'tachyon-hero-order-fix'
           order_fix = '''<style id="tachyon-hero-order-fix">
           .hero .hero-visual{margin-top:32px!important}
           .hero .hero-actions{margin:24px 0 8px!important}
+          .tachyon-demo-shell{border-radius:24px!important;background:#050505!important;overflow:hidden!important;box-shadow:0 24px 90px rgba(0,0,0,.48)!important;text-align:left!important}
+          .tachyon-demo-shell:before{display:none!important}
+          .tachyon-demo-caption{height:44px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 16px;border-bottom:1px solid #242424;background:#090909;color:#a9a9a9;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+          .tachyon-demo-caption span{display:flex;align-items:center;gap:8px}
+          .tachyon-demo-caption i{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7)}
+          .tachyon-demo-caption a{color:#e9e9e9;text-transform:none;letter-spacing:0;font-size:11px}
+          .tachyon-demo-caption a:hover{color:#fff}
+          .tachyon-demo-frame{display:block;width:100%;height:680px;border:0;background:#050505}
+          @media(max-width:900px){
+            .tachyon-demo-frame{height:610px}
+          }
           @media(max-width:580px){
-            .hero .hero-visual{margin-top:28px!important}
+            .hero .hero-visual{margin-top:28px!important;width:calc(100% + 4px)!important;max-width:none!important}
             .hero .hero-actions{margin:20px 0 6px!important}
+            .tachyon-demo-shell{border-radius:18px!important}
+            .tachyon-demo-caption{height:40px;padding:0 12px;font-size:9px;letter-spacing:.05em}
+            .tachyon-demo-caption a{font-size:9px}
+            .tachyon-demo-frame{height:560px}
           }
           </style>'''
           if order_id in html:
@@ -107,14 +134,16 @@ jobs:
           else:
               html = html.replace('</head>', order_fix + '</head>', 1)
 
-          # Verify order inside the actual hero section before writing.
+          # Verify the real hero contains the embedded demo before writing.
           hero_match = re.search(r'<section\b[^>]*class=["\'][^"\']*\bhero\b[^"\']*["\'][^>]*>', html)
           section_end = html.find('</section>', hero_match.end())
           hero = html[hero_match.start():section_end]
           a0, _ = div_block(hero, 'hero-actions')
           v0, _ = div_block(hero, 'hero-visual')
           if not v0 < a0:
-              raise SystemExit('Hero reorder verification failed')
+              raise SystemExit('Hero order verification failed')
+          if 'class="tachyon-demo-frame"' not in hero or 'src="/demo/"' not in hero:
+              raise SystemExit('Embedded demo verification failed')
 
           path.write_text(html)
           PY
@@ -126,5 +155,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Move hero image above primary CTAs'
+          git commit -m 'Embed interactive Tachyon demo in homepage hero'
           git push origin HEAD:main
