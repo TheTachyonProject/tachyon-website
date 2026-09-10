@@ -1,4 +1,4 @@
-name: Wire compact homepage demo
+name: Wire responsive homepage demo
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Switch hero to compact sidebar demo
+      - name: Switch hero to responsive desktop and mobile demos
         shell: bash
         run: |
           set -euo pipefail
@@ -28,7 +28,7 @@ jobs:
           path = Path('index.html')
           html = path.read_text()
 
-          # Point the homepage hero at the purpose-built compact demo.
+          # Desktop starts with the compact sidebar app. Mobile is swapped in by the responsive script below.
           html, n = re.subn(
               r'(<iframe\b[^>]*class="tachyon-demo-frame"[^>]*\bsrc=")[^"]+("[^>]*></iframe>)',
               r'\1/demo/embed.html\2',
@@ -40,15 +40,14 @@ jobs:
 
           fit_id = 'tachyon-compact-demo-fit'
           fit_css = '''<style id="tachyon-compact-demo-fit">
-          /* Fixed mini-app: sidebar navigation stays visible and the demo never needs vertical scrolling. */
+          /* Desktop = compact sidebar app. Mobile = dedicated Tasks-first preview. Both fit without internal vertical scrolling. */
           .tachyon-demo-frame{height:455px!important;overflow:hidden!important}
           @media(max-width:900px){.tachyon-demo-frame{height:430px!important}}
-          @media(max-width:580px){
+          @media(max-width:620px){
             .tachyon-demo-frame{height:405px!important}
             .tachyon-demo-caption{height:32px!important}
           }
           </style>'''
-
           if fit_id in html:
               start = html.index('<style id="tachyon-compact-demo-fit">')
               end = html.index('</style>', start) + len('</style>')
@@ -56,8 +55,34 @@ jobs:
           else:
               html = html.replace('</head>', fit_css + '</head>', 1)
 
+          script_id = 'tachyon-responsive-demo-source'
+          responsive_script = '''<script id="tachyon-responsive-demo-source">
+          (() => {
+            const frame = document.querySelector('.tachyon-demo-frame');
+            if (!frame) return;
+            const mobile = window.matchMedia('(max-width: 620px)');
+            const sync = () => {
+              const next = mobile.matches ? '/demo/mobile-embed.html' : '/demo/embed.html';
+              const current = new URL(frame.src, window.location.href).pathname;
+              if (current !== next) frame.src = next;
+            };
+            sync();
+            if (mobile.addEventListener) mobile.addEventListener('change', sync);
+            else mobile.addListener(sync);
+          })();
+          </script>'''
+          if script_id in html:
+              start = html.index('<script id="tachyon-responsive-demo-source">')
+              end = html.index('</script>', start) + len('</script>')
+              html = html[:start] + responsive_script + html[end:]
+          else:
+              html = html.replace('</body>', responsive_script + '</body>', 1)
+
           if 'src="/demo/embed.html"' not in html:
-              raise SystemExit('Compact demo iframe verification failed')
+              raise SystemExit('Desktop compact demo verification failed')
+          if '/demo/mobile-embed.html' not in html:
+              raise SystemExit('Mobile demo source verification failed')
+
           path.write_text(html)
           PY
       - name: Commit homepage patch
@@ -68,5 +93,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Use compact sidebar demo in homepage hero'
+          git commit -m 'Use dedicated mobile Tachyon hero demo'
           git push origin HEAD:main
