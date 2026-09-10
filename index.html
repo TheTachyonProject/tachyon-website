@@ -488,26 +488,39 @@ html,body{background-color:#050505!important;color:#f5f5f5!important}
   .nav .mobile-toggle{font-size:22px!important;padding:4px!important;line-height:1!important}
 }
 </style><style id="tachyon-hero-order-fix">
-.hero .hero-visual{margin-top:32px!important}
-.hero .hero-actions{margin:24px 0 8px!important}
+/* Keep the actual product in the first viewport on desktop and mobile. */
+.hero{padding:38px 0 34px!important}
+.hero .eyebrow{padding:6px 11px!important;font-size:10px!important}
+.hero h1{font-size:clamp(48px,6.2vw,78px)!important;margin:18px auto 14px!important;line-height:.94!important}
+.hero>div>p,.hero p{font-size:clamp(15px,1.6vw,18px)!important;line-height:1.42!important;max-width:720px!important}
+.hero .hero-visual{margin-top:20px!important}
+.hero .hero-actions{margin:18px 0 6px!important}
 .tachyon-demo-shell{border-radius:24px!important;background:#050505!important;overflow:hidden!important;box-shadow:0 24px 90px rgba(0,0,0,.48)!important;text-align:left!important}
 .tachyon-demo-shell:before{display:none!important}
-.tachyon-demo-caption{height:44px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 16px;border-bottom:1px solid #242424;background:#090909;color:#a9a9a9;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.tachyon-demo-caption{height:40px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 15px;border-bottom:1px solid #242424;background:#090909;color:#a9a9a9;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .tachyon-demo-caption span{display:flex;align-items:center;gap:8px}
 .tachyon-demo-caption i{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7)}
-.tachyon-demo-caption a{color:#e9e9e9;text-transform:none;letter-spacing:0;font-size:11px}
+.tachyon-demo-caption a{color:#e9e9e9;text-transform:none;letter-spacing:0;font-size:10px}
 .tachyon-demo-caption a:hover{color:#fff}
-.tachyon-demo-frame{display:block;width:100%;height:680px;border:0;background:#050505}
+.tachyon-demo-frame{display:block;width:100%;height:620px;border:0;background:#050505}
 @media(max-width:900px){
-  .tachyon-demo-frame{height:610px}
+  .hero{padding:28px 0 30px!important}
+  .hero h1{font-size:clamp(44px,7.2vw,64px)!important;margin:14px auto 10px!important}
+  .hero p{font-size:15px!important;line-height:1.38!important}
+  .hero .hero-visual{margin-top:16px!important}
+  .tachyon-demo-frame{height:560px}
 }
 @media(max-width:580px){
-  .hero .hero-visual{margin-top:28px!important;width:calc(100% + 4px)!important;max-width:none!important}
-  .hero .hero-actions{margin:20px 0 6px!important}
-  .tachyon-demo-shell{border-radius:18px!important}
-  .tachyon-demo-caption{height:40px;padding:0 12px;font-size:9px;letter-spacing:.05em}
-  .tachyon-demo-caption a{font-size:9px}
-  .tachyon-demo-frame{height:560px}
+  .hero{padding:20px 0 26px!important}
+  .hero .eyebrow{font-size:9px!important;padding:5px 9px!important;letter-spacing:.07em!important}
+  .hero h1{font-size:42px!important;line-height:.96!important;margin:12px auto 8px!important;letter-spacing:-.055em!important}
+  .hero p{font-size:14px!important;line-height:1.34!important;max-width:94%!important}
+  .hero .hero-visual{margin-top:14px!important;width:calc(100% + 4px)!important;max-width:none!important}
+  .hero .hero-actions{margin:16px 0 5px!important}
+  .tachyon-demo-shell{border-radius:16px!important}
+  .tachyon-demo-caption{height:36px;padding:0 10px;font-size:8px;letter-spacing:.04em}
+  .tachyon-demo-caption a{font-size:8px}
+  .tachyon-demo-frame{height:500px}
 }
 </style></head><body>
 <header class="nav"><div class="container nav-inner"><a class="brand" href="#"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAE7ElEQVR42u3ay2tTeRQH8O+9+d3H774fTdvYEZQuu+iISMGdm85SSpdCGaXYTZeFcWF3FUcdKP0DBBX6L3Q54srSGRGRLjIiSGqtWBqpi0imJmcWeTS1Sc20NbmWc+CQe0tIfvn0/F7JTwFA4Dh0qEzAgAzIgAzIwYAMyIAMyMGADMiADMjBgAzIgAzIwYAMyIAMyMGADMiAJzpE4v6jqgpVVaEoSv06lUrVr78LghAoFAooFArdA7SkRCaTQdwTI4pi9Pb2Iooi+L4P3/fhui4sy4KUErquQ9M0aJoGIQSEEEilBFKqipTYxVJVtfKclICaagaoYO/Bir33B98pFQBNIJvNYmJiArlc7n9/7q9bcOioVYwQKQihwTAMSClh2zY8z4Pv+wiCAD1xD6I4QjqdRhzFiOIIQRAiCHx4ngfHcaDrOgzDgKZp373i19bWcPnyZTx//vzQr0FJSUVRyLIsGhkZoeXlZSIiKpfLe7PU5Lr01d/bSCKiN2/e0PDw8NHajA4fLtK0vdVp2w58v1J5YRCgt68PU1NTGBoaAtERmkbV/tWitxxH5R16DFRVtQ5gWRY8z4PrutXxzoPvBwjDEEFQefR9H2EYwnVdeJ5XgbNsmNKEoRvQ9P1d9VB4B6DVRz4FePv2LcbGxo6Md2hATdPQE8fo7e+rPKb7EKd7EFcnjSAIYNsOXNeB4zgwTQnLkjBNE4ZhQNd16LpemTxEqmWVNDVqAasoyl68FpDr6+sYGxvDs2fPjqVHdaQLK4oCIUQdTtd1SCnr6TgObNuG4zhwXbf+WMtaNx8dHYWUsul7fPz4EblcDu/fv0exWGzahi87O7hz9y5WVlaO9fPRj5C/jI5SsVhsOSn8WyxSPp+n69evd7Rd33UhXVsE19Z8hmHAlBLSNOtjqOM49THUdV34ngdpWZifn8eHDx8qa0zLwu3f70DX9ZZdWNN16Dtf8PTp0x9zJ2LbNn4aGEBffx/S6V5kMhn09/cjiiLEcYwwjBCGYXUSsWDbNqSUMAxj32stLi4in8/X7ycnJ3Hu3M/fnFgePXqIly9fdhTw2BfSiqI03YbVKrG286gtlmtpVqvSNE08efIEW1tbAIBTmQxW/vobAwOnDpxAtre3ceHCBbx69arj289Ej30LCwuVBXXp4EXxwsJCt9qYXLzz589ToVDYBSw1x8vn83T27FkGbExVVWlpaan5du4rwD/u3etmW5MJOD4+3nz/23BPRLS5uUmnT59mwMZ0XZdWV1fbGvvm5ua63d7kAd747UZbXXdjY4MymQwDNuaZM2doc3OzNWBD9705ezMJbU4W4P3799uqvlwuRz3pNAM25sWLF6lYLBKVqfUEUgWcmZlJSruTgSeEoMd/Pm6r+l6/fk1hGDJgY165cmUXr3Tw2Dc9PZ2kYaf7jQiCgLLZf9qqvmw2S57nMWBjzs7Ofhuv4tfx7/sSDzg4OEhbW1ttVd/q6irZts2AjfngwcP9ePvGwEr1Xf31ahK3nd1780uXLlGpVNX5Rrx48YIsKRMH2LWzMUIIXLt2De/eraNUKjUcuCBQ/eDF7te+t27NofD5c+IOF3X8h/XG30s8z0O5XG7r+Z8+fUrk6ayuAZ6U4POBDMiADMiAHAzIgAzIgBwMyIAMyIAcDMiADMiAHAzIgAzIgBwMyIAMeLLjPyjrozcrlf6LAAAAAElFTkSuQmCC" alt="Tachyon logo"><span>Tachyon AIO</span></a><nav class="nav-links"><a href="#features">Features</a><a href="#product">Product</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></nav><div class="nav-actions"><a class="btn secondary" href="#product">See Tachyon</a><a class="btn tachyon-demo-cta" href="/demo/" style="background:#101010!important;color:#fff!important;border-color:#3a3a3a!important">Try Tachyon</a><a class="btn primary" href="#pricing">Get access</a><button class="mobile-toggle" aria-label="Open menu">☰</button></div></div><nav class="mobile-menu"><a href="#features">Features</a><a href="#product">Product</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></nav></header>
