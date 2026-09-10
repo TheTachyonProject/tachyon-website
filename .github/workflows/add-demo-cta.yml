@@ -82,7 +82,6 @@ jobs:
               raise SystemExit('Could not close hero section')
           hero = html[section_start:section_end]
 
-          # Keep the visual before the large hero CTAs.
           a0, a1 = div_block(hero, 'hero-actions')
           v0, v1 = div_block(hero, 'hero-visual')
           if a0 < v0:
@@ -91,7 +90,6 @@ jobs:
               v0, v1 = div_block(hero, 'hero-visual')
               hero = hero[:v1] + '\n' + actions + hero[v1:]
 
-          # Replace the static promotional hero art with the real interactive demo.
           v0, v1 = div_block(hero, 'hero-visual')
           live_demo = '''<div class="hero-visual fade tachyon-demo-shell">
             <div class="tachyon-demo-caption">
@@ -105,26 +103,39 @@ jobs:
 
           order_id = 'tachyon-hero-order-fix'
           order_fix = '''<style id="tachyon-hero-order-fix">
-          .hero .hero-visual{margin-top:32px!important}
-          .hero .hero-actions{margin:24px 0 8px!important}
+          /* Keep the actual product in the first viewport on desktop and mobile. */
+          .hero{padding:38px 0 34px!important}
+          .hero .eyebrow{padding:6px 11px!important;font-size:10px!important}
+          .hero h1{font-size:clamp(48px,6.2vw,78px)!important;margin:18px auto 14px!important;line-height:.94!important}
+          .hero>div>p,.hero p{font-size:clamp(15px,1.6vw,18px)!important;line-height:1.42!important;max-width:720px!important}
+          .hero .hero-visual{margin-top:20px!important}
+          .hero .hero-actions{margin:18px 0 6px!important}
           .tachyon-demo-shell{border-radius:24px!important;background:#050505!important;overflow:hidden!important;box-shadow:0 24px 90px rgba(0,0,0,.48)!important;text-align:left!important}
           .tachyon-demo-shell:before{display:none!important}
-          .tachyon-demo-caption{height:44px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 16px;border-bottom:1px solid #242424;background:#090909;color:#a9a9a9;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+          .tachyon-demo-caption{height:40px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 15px;border-bottom:1px solid #242424;background:#090909;color:#a9a9a9;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
           .tachyon-demo-caption span{display:flex;align-items:center;gap:8px}
           .tachyon-demo-caption i{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7)}
-          .tachyon-demo-caption a{color:#e9e9e9;text-transform:none;letter-spacing:0;font-size:11px}
+          .tachyon-demo-caption a{color:#e9e9e9;text-transform:none;letter-spacing:0;font-size:10px}
           .tachyon-demo-caption a:hover{color:#fff}
-          .tachyon-demo-frame{display:block;width:100%;height:680px;border:0;background:#050505}
+          .tachyon-demo-frame{display:block;width:100%;height:620px;border:0;background:#050505}
           @media(max-width:900px){
-            .tachyon-demo-frame{height:610px}
+            .hero{padding:28px 0 30px!important}
+            .hero h1{font-size:clamp(44px,7.2vw,64px)!important;margin:14px auto 10px!important}
+            .hero p{font-size:15px!important;line-height:1.38!important}
+            .hero .hero-visual{margin-top:16px!important}
+            .tachyon-demo-frame{height:560px}
           }
           @media(max-width:580px){
-            .hero .hero-visual{margin-top:28px!important;width:calc(100% + 4px)!important;max-width:none!important}
-            .hero .hero-actions{margin:20px 0 6px!important}
-            .tachyon-demo-shell{border-radius:18px!important}
-            .tachyon-demo-caption{height:40px;padding:0 12px;font-size:9px;letter-spacing:.05em}
-            .tachyon-demo-caption a{font-size:9px}
-            .tachyon-demo-frame{height:560px}
+            .hero{padding:20px 0 26px!important}
+            .hero .eyebrow{font-size:9px!important;padding:5px 9px!important;letter-spacing:.07em!important}
+            .hero h1{font-size:42px!important;line-height:.96!important;margin:12px auto 8px!important;letter-spacing:-.055em!important}
+            .hero p{font-size:14px!important;line-height:1.34!important;max-width:94%!important}
+            .hero .hero-visual{margin-top:14px!important;width:calc(100% + 4px)!important;max-width:none!important}
+            .hero .hero-actions{margin:16px 0 5px!important}
+            .tachyon-demo-shell{border-radius:16px!important}
+            .tachyon-demo-caption{height:36px;padding:0 10px;font-size:8px;letter-spacing:.04em}
+            .tachyon-demo-caption a{font-size:8px}
+            .tachyon-demo-frame{height:500px}
           }
           </style>'''
           if order_id in html:
@@ -134,7 +145,6 @@ jobs:
           else:
               html = html.replace('</head>', order_fix + '</head>', 1)
 
-          # Verify the real hero contains the embedded demo before writing.
           hero_match = re.search(r'<section\b[^>]*class=["\'][^"\']*\bhero\b[^"\']*["\'][^>]*>', html)
           section_end = html.find('</section>', hero_match.end())
           hero = html[hero_match.start():section_end]
@@ -155,5 +165,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Embed interactive Tachyon demo in homepage hero'
+          git commit -m 'Pull interactive demo into first viewport'
           git push origin HEAD:main
